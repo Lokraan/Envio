@@ -14,6 +14,7 @@ defmodule Envio.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Envio, []},
       extra_applications: [:logger, :inets]
     ]
   end
@@ -21,7 +22,9 @@ defmodule Envio.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nostrum, "~> 0.2.1"}
+      {:nostrum, git: "https://github.com/Kraigie/nostrum.git"},
+      {:ex_image_info, "~> 0.2.4"},
+      {:httpoison, "~> 1.4", override: true}
     ]
   end
 end

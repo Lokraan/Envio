@@ -24,3 +24,5 @@ envio-*.tar
 
 #ignore secret config
 *.secret.exs
+
+/images/
