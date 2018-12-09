@@ -12,6 +12,7 @@ defmodule Envio.MessageConsumer do
   def start_link do
     Logger.debug "Starting #{__MODULE__}"
 
+    Store.store().create_store()
     Consumer.start_link(__MODULE__)
   end
 
@@ -20,38 +21,41 @@ defmodule Envio.MessageConsumer do
     case msg.content do
       @prefix <> "ping" ->
         Api.create_message(msg.channel_id, "pyongyang!")
+      @prefix <> "piclist" ->
+        pic_list = Enum.join(Store.store().image_list(), " ")
+        Api.create_message(msg.channel_id, pic_list)
       _ ->
-        :ignore
-    end
+        if String.starts_with?(msg.content, @prefix <> "addpic") do
+          msg_split = String.split(msg.content, @prefix <> "addpic ", trim: true)
+          image = List.first(msg.attachments())
+          fname = List.first(msg_split)
 
-    if String.starts_with?(msg.content, @prefix <> "addpic") do
-      msg_split = String.split(msg.content, @prefix <> "addpic ", trim: true)
-      image = List.first(msg.attachments())
-      fname = List.first(msg_split)
+          Logger.debug image
+          case Store.store().store_image(image, fname) do
+            {:ok, _} ->
+              Api.create_message(msg.channel_id, "image added!")
+              Logger.info "Saved an image."
+            {:error, reason} ->
+              Api.create_message(msg.channel_id, reason)
+          end
+        end
 
-      IO.inspect image
-      case Store.store().store_image(image, fname) do
-        {:ok, _} ->
-          Api.create_message(msg.channel_id, "image added!")
-        {:error, reason} ->
-          Api.create_message(msg.channel_id, reason)
-      end
-    end
-
-    if String.starts_with?(msg.content, @prefix <> "pic") do
-      msg_split = String.split(msg.content, @prefix <> "pic ", trim: true)
-      if length(msg_split) == 0 do
-        Api.create_message(msg.channel_id, "please reference an image to post")
-      else
-        img_name = List.first(msg_split)
-        case Store.store().retrieve_image(img_name) do
-          {:ok, img} ->
-            Api.create_message(msg.channel_id, file: img)
-          {:error, reason} ->
-            Api.create_message(msg.channel_id, reason)
+        if String.starts_with?(msg.content, @prefix <> "pic") do
+          msg_split = String.split(msg.content, @prefix <> "pic ", trim: true)
+          if length(msg_split) == 0 do
+            Api.create_message(msg.channel_id, "please reference an image to post")
+          else
+            img_name = List.first(msg_split)
+            case Store.store().retrieve_image(img_name) do
+              {:ok, img} ->
+                Api.create_message(msg.channel_id, file: img)
+                Logger.info "Sent an image"
+              {:error, reason} ->
+                Api.create_message(msg.channel_id, reason)
+            end
+          end
         end
       end
-    end
   end
 
   def handle_event(_event), do: :noop

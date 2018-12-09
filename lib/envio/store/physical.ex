@@ -41,6 +41,17 @@ defmodule Envio.Store.Physical do
     end
   end
 
+  @impl Store
+  def image_list do
+    Enum.map(get_images(), fn path -> base_fname(path) end)
+  end
+
+  def create_store do
+    if not File.exists?(@store_source) do
+      File.mkdir(@store_source)
+    end
+  end
+
   defp download_image(url) do
     Application.ensure_all_started :inets
 
@@ -48,7 +59,7 @@ defmodule Envio.Store.Physical do
     body
   end
 
-  defp get_images(name) do
+  defp get_images(name \\ "*") do
     s_fname = base_fname(name)
 
     @store_source

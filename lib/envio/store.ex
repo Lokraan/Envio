@@ -9,6 +9,8 @@ defmodule Envio.Store do
 
   @callback retrieve_image(%{}) :: {:ok, %{}} | {:error, any}
 
+  @callback image_list :: [String.t()]
+
   def store do
     config(:store) || Envio.Store.Physical
   end

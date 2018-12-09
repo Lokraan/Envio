@@ -9,7 +9,6 @@ defmodule Envio do
       start: {Envio.ConsumerSupervisor, :start_link, []}
     }]
 
-
     Logger.debug "Starting #{__MODULE__}"
 
     Supervisor.start_link(children, strategy: :one_for_one)
