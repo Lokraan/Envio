@@ -36,25 +36,24 @@ defmodule Envio.MessageConsumer do
   def handle_event(_event), do: :noop
 
   defp add_pic(msg) do
-    if String.starts_with?(msg.content, @prefix <> "addpic") do
-      msg_split = String.split(msg.content, @prefix <> "addpic ", trim: true)
-      image = List.first(msg.attachments())
-      fname = List.first(msg_split)
+    msg_split = String.split(msg.content, @prefix <> "addpic ", trim: true)
+    image = List.first(msg.attachments())
+    fname = List.first(msg_split)
 
-      Logger.debug image
-      case Store.store().store_image(image, fname) do
-        {:ok, _} ->
-          Api.create_message(msg.channel_id, "image added!")
-          Logger.info "Saved an image."
+    Logger.debug image
+    case Store.store().store_image(image, fname) do
+      {:ok, _} ->
+        Api.create_message(msg.channel_id, "image added!")
+        Logger.info "Saved an image."
 
-        {:error, reason} ->
-          Api.create_message(msg.channel_id, reason)
-      end
+      {:error, reason} ->
+        Api.create_message(msg.channel_id, reason)
     end
   end
 
   defp display_pic(msg) do
     msg_split = String.split(msg.content, @prefix <> "pic ", trim: true)
+    
     if length(msg_split) == 0 do
       Api.create_message(msg.channel_id, "please reference an image to post")
     else
